@@ -1,3 +1,4 @@
+
 import pygame
 
 
@@ -85,33 +86,33 @@ def game(save):
     clock = pygame.time.Clock()
     running = True
     dt = 0
+    mov_amount = 8
 
-    player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-
-    SaveFile = open(save, "r")
-    SaveFileLines = SaveFile.readlines()
+    Map, MapText, Player_X, Player_Y = SaveFileProcess(save)
     
-    mapp = SaveFileLines[0]
-    mappp = pygame.image.load(mapp)
+    MapTextt = open(MapText, "r") 
+    TextLines = MapTextt.readlines()
+    pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, 0, 80, 80))
+    character = pygame.image.load("Character.png")
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.blit(mappp, (0,0))
-
-        pygame.draw.circle(screen, "red", player_pos, 40)
+        pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, 0, 80, 80))
+        screen.blit(Map, (0,0))
+        screen.blit(character, (Player_X, Player_Y))
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            player_pos.y -= 8
+            Player_Y -= mov_amount
         if keys[pygame.K_s]:
-            player_pos.y += 8 
+            Player_Y += mov_amount
         if keys[pygame.K_a]:
-            player_pos.x -= 8
+            Player_X -= mov_amount
         if keys[pygame.K_d]:
-            player_pos.x += 8 
+            Player_X += mov_amount
 
         pygame.display.flip()
 
@@ -146,5 +147,19 @@ def ChangeMap(current, direction):
         current = str(num) + "_" + name_split[1] + ".png"
         return current
     
+def SaveFileProcess(save):
+    SaveFile = open(save, "r")
+    SaveFileLines = SaveFile.readlines()
+    mapp = SaveFileLines[0]
+    mapppp = mapp.strip()
+    TextMap = mapppp.replace(".png", ".txt")
+
+    mappp = pygame.image.load(mapppp)
+    
+    Player_X = int(SaveFileLines[1].strip())
+    Player_Y = int(SaveFileLines[2].strip())
+        
+    return mappp, TextMap, Player_X, Player_Y
+
 
 menu()
