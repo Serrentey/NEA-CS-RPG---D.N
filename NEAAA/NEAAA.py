@@ -87,12 +87,12 @@ def game(save):
     running = True
     dt = 0
     mov_amount = 8
+    wall_move_amount = 1
 
     Map, MapText, Player_X, Player_Y = SaveFileProcess(save)
     
-    MapTextt = open(MapText, "r") 
-    TextLines = MapTextt.readlines()
-    pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, 0, 80, 80))
+    walls = MapTextProcess(MapText, screen)
+
     character = pygame.image.load("Character.png")
 
     while running:
@@ -100,19 +100,39 @@ def game(save):
             if event.type == pygame.QUIT:
                 running = False
 
-        pygame.draw.rect(screen, (0,0,0), pygame.Rect(0, 0, 80, 80))
+        
         screen.blit(Map, (0,0))
         screen.blit(character, (Player_X, Player_Y))
+        CharacterRect = character.get_rect(topleft = (Player_X, Player_Y))
+        
+        wall_touch = 0
+        for x in walls:
+            if CharacterRect.colliderect(x):
+                wall_touch = 1
+
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            Player_Y -= mov_amount
+            if wall_touch == 1:
+                Player_Y += mov_amount
+            else:
+                Player_Y -= mov_amount
         if keys[pygame.K_s]:
-            Player_Y += mov_amount
+            if wall_touch == 1:
+                Player_Y -= mov_amount
+            else:
+                Player_Y += mov_amount
         if keys[pygame.K_a]:
-            Player_X -= mov_amount
+            if wall_touch == 1:
+                Player_X += mov_amount
+            else:
+                Player_X -= mov_amount
         if keys[pygame.K_d]:
-            Player_X += mov_amount
+            if wall_touch == 1:
+                Player_X -= mov_amount
+            else:
+                Player_X += mov_amount
+                
 
         pygame.display.flip()
 
@@ -161,5 +181,38 @@ def SaveFileProcess(save):
         
     return mappp, TextMap, Player_X, Player_Y
 
+def MapTextProcess(TextFile, screen):
+    flag = 0
+    amount = 0
+    listt = []
+    
+    Text = open(TextFile, "r")
+    TextLines = Text.readlines()
 
+        
+    for x in TextLines:
+        xxx = x.strip()
+        xx = xxx.split(",")
+        number = 0
+        for y in xx:
+            if y == "0":
+                number += 1
+            elif y == "1":
+                x = number * 80
+                yy = amount * 80
+                Wall = pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, yy, 80, 80))
+                number += 1
+                listt.append(Wall)
+                number += 1
+            else:
+                pass
+        amount += 1
+                
+    print(listt)
+    return listt
+        
+        
+        
+            
+    
 menu()
