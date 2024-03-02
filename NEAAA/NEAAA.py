@@ -90,26 +90,28 @@ def game(save):
 
     SaveFile = open(save, "r")
     SaveFileLines = SaveFile.readlines()
-    mapp = pygame.image.load(SaveFileLines[0])
+    
+    mapp = SaveFileLines[0]
+    mappp = pygame.image.load(mapp)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        screen.blit(mapp, (0,0))
+        screen.blit(mappp, (0,0))
 
         pygame.draw.circle(screen, "red", player_pos, 40)
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            player_pos.y -= 300 * dt
+            player_pos.y -= 8
         if keys[pygame.K_s]:
-            player_pos.y += 300 * dt
+            player_pos.y += 8 
         if keys[pygame.K_a]:
-            player_pos.x -= 300 * dt
+            player_pos.x -= 8
         if keys[pygame.K_d]:
-            player_pos.x += 300 * dt
+            player_pos.x += 8 
 
         pygame.display.flip()
 
