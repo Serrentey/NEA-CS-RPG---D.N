@@ -271,6 +271,7 @@ def WallTouch(CharacterRect, walls):
             wall_touch = 1
     return wall_touch
         
-        
+class Enemey():
+    def __init__(self, hp, attack, speed, type)
         
 menu()
