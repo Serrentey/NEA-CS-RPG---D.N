@@ -1,6 +1,6 @@
 
 import pygame
-
+import random
 
 pygame.init()
 
@@ -186,6 +186,7 @@ def game(save):
                    MapName = MapName2
                    Player_X = 1272
                 
+        Cat.Walk(screen)
         screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
 
@@ -240,7 +241,8 @@ def SaveFileProcess(save):
 
 def MapTextProcess(TextFile, screen):
     y_number = 0
-    listt = []
+    wall_list = []
+    enemy_list = []
     
     Text = open(TextFile, "r")
     TextLines = Text.readlines()
@@ -257,12 +259,14 @@ def MapTextProcess(TextFile, screen):
                 x = x_number * 80
                 yy = y_number * 80
                 Wall = pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, yy, 80, 80))
-                listt.append(Wall)
+                wall_list.append(Wall)
                 x_number += 1
-            else:
-                pass
+            elif y == "2":
+                enemy = "yes"
+                enemy_list.append()
+                
         y_number += 1
-    return listt
+    return wall_list
   
 def WallTouch(CharacterRect, walls):
     wall_touch = 0
@@ -271,11 +275,36 @@ def WallTouch(CharacterRect, walls):
             wall_touch = 1
     return wall_touch
         
-class Enemey():
-    def __init__(self, hp, attack, speed, type):
+class Enemy():
+    def __init__(self, image, hp, attack, speed, typing, x, y):
+        self.image = pygame.image.load(image)
         self.hp = hp
         self.attack = attack
         self.speed = speed
-        self.type = type 
+        self.typing = typing
+        self.x = x
+        self.y = y
+        
+    def Spawn(self, location, screen):
+        screen.blit(self.image, location)
+        
+    def Change_Location(self, x, y):
+        self.x = x
+        self.y = y
+        
+    def Walk(self, screen):
+        decision = (random.randint(0,3))
+        if decision == 0:
+            self.x += 1
+        elif decision == 1:
+            self.x -= 1
+        elif decision == 2:
+            self.y += 1
+        elif decision == 3:
+            self.y -= 1
+        screen.blit(self.image, (self.x, self.y))
+        
+        
+Cat = Enemy("Cat.png", 10, 2, 3, "Normal", 80, 80)
         
 menu()
