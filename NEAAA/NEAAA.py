@@ -93,6 +93,7 @@ def game(save):
     
     TempPlayer_X = Player_X
     TempPlayer_Y = Player_Y
+    
 
     walls = MapTextProcess(MapText, screen)
 
@@ -124,7 +125,8 @@ def game(save):
             elif wall_touch == 0:
                 Player_Y -= mov_amount    
             if Player_Y == 0:
-                ChangeMap(Map, "UP")
+                new = ChangeMap(MapName, "UP")
+                Map = pygame.image.load(new)
         if keys[pygame.K_s]:
             TempPlayer_Y += mov_amount
             wall_touch = WallTouch(TempCharacterRect, walls)
@@ -133,7 +135,8 @@ def game(save):
             elif wall_touch == 0:
                 Player_Y += mov_amount
             if Player_Y == 720:
-                ChangeMap(Map, "DOWN")
+                new = ChangeMap(MapName, "DOWN")
+                Map = pygame.image.load(new)
         if keys[pygame.K_a]:
            TempPlayer_X -= mov_amount
            wall_touch = WallTouch(TempCharacterRect, walls)
@@ -142,7 +145,10 @@ def game(save):
            elif wall_touch == 0:
                Player_X -= mov_amount
            if Player_X == 0:
-                ChangeMap(Map, "LEFT")
+                MapName, NewMapText = ChangeMap(MapName, "LEFT")
+                Map = pygame.image.load(MapName)
+                walls = MapTextProcess(NewMapText, screen)
+                Player_X = 1272
         if keys[pygame.K_d]:
            TempPlayer_X += mov_amount
            wall_touch = WallTouch(TempCharacterRect, walls)
@@ -151,7 +157,10 @@ def game(save):
            elif wall_touch == 0:
                Player_X += mov_amount
            if Player_X == 1280:
-                ChangeMap(Map, "RIGHT")
+                MapName, NewMapText = ChangeMap(MapName, "RIGHT")
+                Map = pygame.image.load(MapName)
+                walls = MapTextProcess(NewMapText, screen)
+                Player_X = 8
                 
         screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
@@ -163,29 +172,31 @@ def game(save):
 
 def ChangeMap(current, direction):
     if direction == "UP":
-        name_rep = current.replace(".png", "")
-        name_split = name_rep.split("_")
+        name_replace = current.replace(".png", "")
+        name_split = name_replace.split("_")
         num = int(name_split[1]) + 1
         current = name_split[0] + "_" + str(num) + ".png"
         return current   
     elif direction == "DOWN":
-        name_rep = current.replace(".png", "")
-        name_split = name_rep.split("_")
+        name_replace = current.replace(".png", "")
+        name_split = name_replace.split("_")
         num = int(name_split[1]) - 1
         current = name_split[0] + "_" + str(num) + ".png"
         return current
     elif direction == "LEFT":
-        name_rep = current.replace(".png", "")
-        name_split = name_rep.split("_")
+        name_replace = current.replace(".png", "")
+        name_split = name_replace.split("_")
         num = int(name_split[0]) - 1
-        current = str(num) + "_" + name_split[1] + ".png"
-        return current
+        current = str(num) + "_" + name_split[1].strip() + ".png"
+        currentText = str(num) + "_" + name_split[1].strip() + ".txt"
+        return current, currentText
     else:
-        name_rep = current.replace(".png", "")
-        name_split = name_rep.split("_")
+        name_replace = current.replace(".png", "")
+        name_split = name_replace.split("_")
         num = int(name_split[0]) + 1
-        current = str(num) + "_" + name_split[1] + ".png"
-        return current
+        current = str(num) + "_" + name_split[1].strip() + ".png"
+        currentText = str(num) + "_" + name_split[1].strip() + ".txt"
+        return current, currentText
     
 def SaveFileProcess(save):
     SaveFile = open(save, "r")
