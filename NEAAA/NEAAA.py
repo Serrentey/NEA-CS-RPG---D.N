@@ -125,8 +125,15 @@ def game(save):
             elif wall_touch == 0:
                 Player_Y -= mov_amount    
             if Player_Y == 0:
-                new = ChangeMap(MapName, "UP")
-                Map = pygame.image.load(new)
+                try:
+                    MapName2 = MapName
+                    MapName, NewMapText = ChangeMap(MapName, "UP")
+                    Map = pygame.image.load(MapName)
+                    walls = MapTextProcess(NewMapText, screen)
+                    Player_Y = 712
+                except:
+                    MapName = MapName2
+                    Player_Y = 8
         if keys[pygame.K_s]:
             TempPlayer_Y += mov_amount
             wall_touch = WallTouch(TempCharacterRect, walls)
@@ -134,21 +141,33 @@ def game(save):
                 pass
             elif wall_touch == 0:
                 Player_Y += mov_amount
-            if Player_Y == 720:
-                new = ChangeMap(MapName, "DOWN")
-                Map = pygame.image.load(new)
+            if Player_Y >= 720:
+                try:
+                    MapName2 = MapName
+                    MapName, NewMapText = ChangeMap(MapName, "DOWN")
+                    Map = pygame.image.load(MapName)
+                    walls = MapTextProcess(NewMapText, screen)
+                    Player_Y = 8
+                except:
+                    MapName = MapName2
+                    Player_Y = 712
         if keys[pygame.K_a]:
            TempPlayer_X -= mov_amount
            wall_touch = WallTouch(TempCharacterRect, walls)
            if wall_touch == 1:
-               pass
+              pass
            elif wall_touch == 0:
-               Player_X -= mov_amount
+              Player_X -= mov_amount
            if Player_X == 0:
-                MapName, NewMapText = ChangeMap(MapName, "LEFT")
-                Map = pygame.image.load(MapName)
-                walls = MapTextProcess(NewMapText, screen)
-                Player_X = 1272
+                try:
+                    MapName2 = MapName
+                    MapName, NewMapText = ChangeMap(MapName, "LEFT")
+                    Map = pygame.image.load(MapName)
+                    walls = MapTextProcess(NewMapText, screen)
+                    Player_X = 1272
+                except:
+                    MapName = MapName2
+                    Player_X = 8
         if keys[pygame.K_d]:
            TempPlayer_X += mov_amount
            wall_touch = WallTouch(TempCharacterRect, walls)
@@ -157,10 +176,15 @@ def game(save):
            elif wall_touch == 0:
                Player_X += mov_amount
            if Player_X == 1280:
-                MapName, NewMapText = ChangeMap(MapName, "RIGHT")
-                Map = pygame.image.load(MapName)
-                walls = MapTextProcess(NewMapText, screen)
-                Player_X = 8
+               try: 
+                   MapName2 = MapName
+                   MapName, NewMapText = ChangeMap(MapName, "RIGHT")
+                   Map = pygame.image.load(MapName)
+                   walls = MapTextProcess(NewMapText, screen)
+                   Player_X = 8
+               except:
+                   MapName = MapName2
+                   Player_X = 1272
                 
         screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
@@ -175,14 +199,16 @@ def ChangeMap(current, direction):
         name_replace = current.replace(".png", "")
         name_split = name_replace.split("_")
         num = int(name_split[1]) + 1
-        current = name_split[0] + "_" + str(num) + ".png"
-        return current   
+        current = name_split[0].strip() + "_" + str(num) + ".png"
+        currentText = name_split[0].strip() + "_" + str(num) + ".txt"
+        return current, currentText
     elif direction == "DOWN":
         name_replace = current.replace(".png", "")
         name_split = name_replace.split("_")
         num = int(name_split[1]) - 1
-        current = name_split[0] + "_" + str(num) + ".png"
-        return current
+        current = name_split[0].strip() + "_" + str(num) + ".png"
+        currentText = name_split[0].strip() + "_" + str(num) + ".txt"
+        return current, currentText
     elif direction == "LEFT":
         name_replace = current.replace(".png", "")
         name_split = name_replace.split("_")
