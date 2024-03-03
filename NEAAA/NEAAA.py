@@ -1,6 +1,7 @@
 
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -12,7 +13,7 @@ load_button = pygame.image.load("Load.png")
 settings_button = pygame.image.load("Settings.png")
 quit_button = pygame.image.load("Quit.png")
 background = pygame.image.load("sky.png")
-new_game = 0
+
 
 def menu():
     
@@ -21,6 +22,7 @@ def menu():
     screen = pygame.display.set_mode((1280, 720))
     clock = pygame.time.Clock()
     dt = 0
+    new_game = 0
     
     while running:
 
@@ -44,8 +46,9 @@ def menu():
                         running = False
                         new_game = 1
                         save = "NewGame.txt"
-                    else:
-                        pass
+                    elif button_press == 4:
+                        running = False
+                        
                     
 
         screen.blit(background, (0,0))
@@ -76,7 +79,7 @@ def menu():
     if new_game == 1:
         game(save)
     else:
-        pass
+        pygame.quit()
     pygame.quit()
 
 
@@ -93,7 +96,8 @@ def game(save):
     
     TempPlayer_X = Player_X
     TempPlayer_Y = Player_Y
-    
+    MoveEnemyStart = time.time()
+    decision = 2
 
     walls = MapTextProcess(MapText, screen)
 
@@ -185,8 +189,18 @@ def game(save):
                except:
                    MapName = MapName2
                    Player_X = 1272
-                
-        Cat.Walk(screen)
+                   
+        EnemyWalkTime = time.time() - MoveEnemyStart
+
+        if EnemyWalkTime >= 3:
+            Cat.Walk(screen, decision)
+            if EnemyWalkTime >= 3.2:
+                decision = random.randint(0,4)
+                MoveEnemyStart = time.time()
+
+           
+        Cat.Spawn(screen)
+            
         screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
 
@@ -209,6 +223,7 @@ def ChangeMap(current, direction):
         num = int(name_split[1]) - 1
         current = name_split[0].strip() + "_" + str(num) + ".png"
         currentText = name_split[0].strip() + "_" + str(num) + ".txt"
+        print(current, currentText)
         return current, currentText
     elif direction == "LEFT":
         name_replace = current.replace(".png", "")
@@ -263,7 +278,10 @@ def MapTextProcess(TextFile, screen):
                 x_number += 1
             elif y == "2":
                 enemy = "yes"
-                enemy_list.append()
+                enemy_list.append(enemy)
+                x_number += 1
+            else:
+                pass
                 
         y_number += 1
     return wall_list
@@ -285,24 +303,25 @@ class Enemy():
         self.x = x
         self.y = y
         
-    def Spawn(self, location, screen):
-        screen.blit(self.image, location)
+    def Spawn(self, screen):
+        screen.blit(self.image, (self.x, self.y))
         
     def Change_Location(self, x, y):
         self.x = x
         self.y = y
         
-    def Walk(self, screen):
-        decision = (random.randint(0,3))
+    def Walk(self, screen, decision):
         if decision == 0:
-            self.x += 1
+            self.y += 8
         elif decision == 1:
-            self.x -= 1
+            self.y -= 8
         elif decision == 2:
-            self.y += 1
+            self.x += 8
         elif decision == 3:
-            self.y -= 1
-        screen.blit(self.image, (self.x, self.y))
+            self.x -= 8
+        else:
+            pass
+                
         
         
 Cat = Enemy("Cat.png", 10, 2, 3, "Normal", 80, 80)
