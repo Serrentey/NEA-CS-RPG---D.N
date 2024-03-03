@@ -89,8 +89,11 @@ def game(save):
     mov_amount = 8
     wall_move_amount = 1
 
-    Map, MapText, Player_X, Player_Y = SaveFileProcess(save)
+    Map, MapText, Player_X, Player_Y, MapName = SaveFileProcess(save)
     
+    TempPlayer_X = Player_X
+    TempPlayer_Y = Player_Y
+
     walls = MapTextProcess(MapText, screen)
 
     character = pygame.image.load("Character.png")
@@ -102,38 +105,55 @@ def game(save):
 
         
         screen.blit(Map, (0,0))
-        screen.blit(character, (Player_X, Player_Y))
-        CharacterRect = character.get_rect(topleft = (Player_X, Player_Y))
-        
-        wall_touch = 0
-        for x in walls:
-            if CharacterRect.colliderect(x):
-                wall_touch = 1
 
+        CharacterRect = character.get_rect(topleft = (Player_X, Player_Y))
+        TempCharacterRect = character.get_rect(topleft = (TempPlayer_X, TempPlayer_Y))
+
+        wall_touch = 0
+        wall_touch = WallTouch(CharacterRect, walls)
+        
+        TempPlayer_X = Player_X
+        TempPlayer_Y = Player_Y
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
+            TempPlayer_Y -= mov_amount
+            wall_touch = WallTouch(TempCharacterRect, walls)
             if wall_touch == 1:
-                Player_Y += mov_amount
-            else:
-                Player_Y -= mov_amount
+                pass
+            elif wall_touch == 0:
+                Player_Y -= mov_amount    
+            if Player_Y == 0:
+                ChangeMap(Map, "UP")
         if keys[pygame.K_s]:
+            TempPlayer_Y += mov_amount
+            wall_touch = WallTouch(TempCharacterRect, walls)
             if wall_touch == 1:
-                Player_Y -= mov_amount
-            else:
+                pass
+            elif wall_touch == 0:
                 Player_Y += mov_amount
+            if Player_Y == 720:
+                ChangeMap(Map, "DOWN")
         if keys[pygame.K_a]:
-            if wall_touch == 1:
-                Player_X += mov_amount
-            else:
-                Player_X -= mov_amount
+           TempPlayer_X -= mov_amount
+           wall_touch = WallTouch(TempCharacterRect, walls)
+           if wall_touch == 1:
+               pass
+           elif wall_touch == 0:
+               Player_X -= mov_amount
+           if Player_X == 0:
+                ChangeMap(Map, "LEFT")
         if keys[pygame.K_d]:
-            if wall_touch == 1:
-                Player_X -= mov_amount
-            else:
-                Player_X += mov_amount
+           TempPlayer_X += mov_amount
+           wall_touch = WallTouch(TempCharacterRect, walls)
+           if wall_touch == 1:
+               pass
+           elif wall_touch == 0:
+               Player_X += mov_amount
+           if Player_X == 1280:
+                ChangeMap(Map, "RIGHT")
                 
-
+        screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
@@ -179,40 +199,41 @@ def SaveFileProcess(save):
     Player_X = int(SaveFileLines[1].strip())
     Player_Y = int(SaveFileLines[2].strip())
         
-    return mappp, TextMap, Player_X, Player_Y
+    return mappp, TextMap, Player_X, Player_Y, mapp
 
 def MapTextProcess(TextFile, screen):
-    flag = 0
-    amount = 0
+    y_number = 0
     listt = []
     
     Text = open(TextFile, "r")
     TextLines = Text.readlines()
 
-        
+
     for x in TextLines:
         xxx = x.strip()
         xx = xxx.split(",")
-        number = 0
+        x_number = 0
         for y in xx:
             if y == "0":
-                number += 1
+                x_number += 1
             elif y == "1":
-                x = number * 80
-                yy = amount * 80
+                x = x_number * 80
+                yy = y_number * 80
                 Wall = pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, yy, 80, 80))
-                number += 1
                 listt.append(Wall)
-                number += 1
+                x_number += 1
             else:
                 pass
-        amount += 1
-                
-    print(listt)
+        y_number += 1
     return listt
+  
+def WallTouch(CharacterRect, walls):
+    wall_touch = 0
+    for x in walls:
+        if CharacterRect.colliderect(x):
+            wall_touch = 1
+    return wall_touch
         
         
         
-            
-    
 menu()
