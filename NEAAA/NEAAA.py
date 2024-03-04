@@ -92,7 +92,10 @@ def game(save):
     mov_amount = 8
     wall_move_amount = 1
 
-    Map, MapText, Player_X, Player_Y, MapName = SaveFileProcess(save)
+    Map, MapText, Player_X, Player_Y, MapName, HP, MaxHP, Attack, Speed, Level = SaveFileProcess(save)
+    
+    MainCharacter = Character("Character.png", HP, MaxHP, Attack, Speed, Level, Player_X, Player_Y)
+    print(MainCharacter.GetHP())
     
     TempPlayer_X = Player_X
     TempPlayer_Y = Player_Y
@@ -200,6 +203,9 @@ def game(save):
 
            
         Cat.Spawn(screen)
+        
+        if CharacterRect.colliderect(Cat.Get_Rect()):
+            print("yes")
             
         screen.blit(character, (Player_X, Player_Y))
         pygame.display.flip()
@@ -251,8 +257,13 @@ def SaveFileProcess(save):
     
     Player_X = int(SaveFileLines[1].strip())
     Player_Y = int(SaveFileLines[2].strip())
+    HP = int(SaveFileLines[3].strip())
+    MaxHP = int(SaveFileLines[4].strip())
+    Attack = int(SaveFileLines[5].strip())
+    Speed = int(SaveFileLines[6].strip())
+    Level = int(SaveFileLines[7].strip())
         
-    return mappp, TextMap, Player_X, Player_Y, mapp
+    return mappp, TextMap, Player_X, Player_Y, mapp, HP, MaxHP, Attack, Speed, Level
 
 def MapTextProcess(TextFile, screen):
     y_number = 0
@@ -311,31 +322,76 @@ class Enemy():
         self.x = x
         self.y = y
         
+    def Get_Rect(self):
+        return self.EnemyRect
+    
+    def UpdateRect(self):
+        self.EnemyRect = self.image.get_rect(topleft = (self.x, self.y))
+        
     def Walk(self, screen, decision, walls):
+        
+        wall_touch = 0
 
         if decision == 0:
             if self.y >= 720:
                 self.y = 712
+                Cat.UpdateRect()
             else:
                 self.y += 8
+                Cat.UpdateRect()
+                wall_touch = WallTouch(Cat.Get_Rect(), walls)
+                if wall_touch == 1:
+                    self.y -= 8
         elif decision == 1:
             if self.y <= 0:
                 self.y = 8
+                Cat.UpdateRect()
             else:
                 self.y -= 8
+                Cat.UpdateRect()
+                wall_touch = WallTouch(Cat.Get_Rect(), walls)
+                if wall_touch == 1:
+                    self.y += 8
         elif decision == 2:
             if self.x >= 1280:
                 self.x = 1272
+                Cat.UpdateRect()
             else:
                 self.x += 8
+                Cat.UpdateRect()
+                wall_touch = WallTouch(Cat.Get_Rect(), walls)
+                if wall_touch == 1:
+                    self.x -= 8
         elif decision == 3:
             if self.x <= 0:
                 self.x = 8
+                Cat.UpdateRect()
             else:
                 self.x -= 8
+                Cat.UpdateRect()
+                wall_touch = WallTouch(Cat.Get_Rect(), walls)
+                if wall_touch == 1:
+                    self.x += 8
         
                 
-
-Cat = Enemy("Cat.png", 10, 2, 3, "Normal", 80, 80)
+class Character():
+    def __init__(self, image, hp, MaxHP, attack, speed, level, x, y):
+        self.image = pygame.image.load(image)
+        self.hp = hp
+        self.MaxHP = MaxHP
+        self.attack = attack
+        self.speed = speed
+        self.x = x
+        self.y = y
         
+    def GetHP(self):
+        return self.hp
+        
+
+Cat = Enemy("Cat.png", 10, 2, 3, "Normal", 880, 280)
+        
+
+
+
+
 menu()
