@@ -193,7 +193,7 @@ def game(save):
         EnemyWalkTime = time.time() - MoveEnemyStart
 
         if EnemyWalkTime >= 3:
-            Cat.Walk(screen, decision)
+            Cat.Walk(screen, decision, walls)
             if EnemyWalkTime >= 3.2:
                 decision = random.randint(0,4)
                 MoveEnemyStart = time.time()
@@ -302,6 +302,7 @@ class Enemy():
         self.typing = typing
         self.x = x
         self.y = y
+        self.EnemyRect = self.image.get_rect(topleft = (self.x, self.y))
         
     def Spawn(self, screen):
         screen.blit(self.image, (self.x, self.y))
@@ -310,20 +311,31 @@ class Enemy():
         self.x = x
         self.y = y
         
-    def Walk(self, screen, decision):
+    def Walk(self, screen, decision, walls):
+
         if decision == 0:
-            self.y += 8
+            if self.y >= 720:
+                self.y = 712
+            else:
+                self.y += 8
         elif decision == 1:
-            self.y -= 8
+            if self.y <= 0:
+                self.y = 8
+            else:
+                self.y -= 8
         elif decision == 2:
-            self.x += 8
+            if self.x >= 1280:
+                self.x = 1272
+            else:
+                self.x += 8
         elif decision == 3:
-            self.x -= 8
-        else:
-            pass
+            if self.x <= 0:
+                self.x = 8
+            else:
+                self.x -= 8
+        
                 
-        
-        
+
 Cat = Enemy("Cat.png", 10, 2, 3, "Normal", 80, 80)
         
 menu()
