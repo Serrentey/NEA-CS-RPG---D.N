@@ -93,8 +93,7 @@ def game(save):
 
     Map, MapText, PlayerX, PlayerY, MapName, HP, MaxHP, Attack, Speed, Level = SaveFileProcess(save)
     
-    MainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY)
-    print(MainCharacter.GetHP())
+    MainMainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY)
     
     TempPlayerX = PlayerX
     TempPlayerY = PlayerY
@@ -109,6 +108,10 @@ def game(save):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_f:
+                    TurnBasedRpg(MainMainCharacter, Cat, screen)
 
         
         screen.blit(Map, (0,0))
@@ -304,9 +307,12 @@ def WallTouch(CharacterRect, walls):
     return WallTouchNum
         
 class Enemy():
-    def __init__(self, Image, HP, Attack, Speed, Typing, X, Y):
+    def __init__(self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y):
+        replaced = Image.replace("Characters/", "")
+        self.Name = replaced.replace(".png", "")
         self.Image = pygame.image.load(Image)
         self.HP = HP
+        self.MaxHP = MaxHP
         self.Attack = Attack
         self.Speed = Speed
         self.Typing = Typing
@@ -323,6 +329,12 @@ class Enemy():
         
     def Get_Rect(self):
         return self.EnemyRect
+    
+    def GetName(self):
+        return self.Name
+    
+    def GetMaxHP(self):
+        return self.MaxHP
     
     def UpdateRect(self):
         self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
@@ -371,10 +383,21 @@ class Enemy():
                 WallTouchNum = WallTouch(Cat.Get_Rect(), walls)
                 if WallTouchNum == 1:
                     self.X += 8
+                    
+    def GetHP(self):
+        return self.HP
+    
+    def GetSpeed(self):
+        return self.Speed
+    
+    def UpdateHP(self, NewHP):
+        self.HP = NewHP
         
                 
 class Character():
     def __init__(self, Image, HP, MaxHP, Attack, Speed, Level, X, Y):
+        replaced = Image.replace("Characters/", "")
+        self.Name = replaced.replace(".png", "")
         self.Image = pygame.image.load(Image)
         self.HP = HP
         self.MaxHP = MaxHP
@@ -385,11 +408,70 @@ class Character():
         
     def GetHP(self):
         return self.HP
+    
+    def GetSpeed(self):
+        return self.Speed
+    
+    def GetAttack(self):
+        return self.Attack
+    
+    def GetName(self):
+        return self.Name
         
 
-Cat = Enemy("Characters/Cat.png", 10, 2, 3, "Normal", 880, 280)
+Cat = Enemy("Characters/Cat.png", 10, 10, 2, 3, "Normal", 880, 280)
         
+def TurnBasedRpg(MainCharacter, Enemyy, screen):
+    running = True
+    background = pygame.image.load("BattleScreen.png")
+    
+    if MainCharacter.GetSpeed() > Enemyy.GetSpeed():
+        SpeedQueue = [MainCharacter, Enemyy]
+    else:
+        SpeedQueue = [Enemyy, MainCharacter]
+    PlayerMove = 1
+    Button = 1
+    while running:
+        for event in pygame.event.get():
+            if PlayerMove == 1:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_m:
+                        running = False
+                    if event.key == pygame.K_w:
+                        if Button != 1:
+                            Button -= 1
+                    if event.key == pygame.K_s:
+                        if Button != 5:
+                            Button += 1
+                    if event.key == pygame.K_RETURN:
+                        if Button == 1:
+                            Enemyy.UpdateHP(PlayerAttack(MainCharacter.GetAttack(), Enemyy.GetHP()))
+                            running = BattleStatus(Enemyy.GetHP())
+                    
 
+                    
+        screen.blit(background, (0,0))
+        draw_text(str(Enemyy.GetName()) + "    " + str(Enemyy.GetHP()) + "/" + str(Enemyy.GetMaxHP()), text_font, (255,255,255), 16, 498, screen)
+        pygame.display.flip()
+
+def PlayerAttack(PlayerAttack, EnemyHealth):
+    NewHP = EnemyHealth - PlayerAttack
+    return NewHP
+    
+def BattleStatus(EnemyHP):
+    running = True
+    if EnemyHP <= 0:
+        running = False
+    else: 
+        running = True
+    return running
+
+text_font = pygame.font.SysFont("Comic Sans", 30)
+
+
+def draw_text(text, font, text_col, x, y, screen):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
 
 
 menu()
