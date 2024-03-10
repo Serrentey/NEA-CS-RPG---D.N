@@ -451,7 +451,11 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
 
                     
         screen.blit(background, (0,0))
-        draw_text(str(Enemyy.GetName()) + "    " + str(Enemyy.GetHP()) + "/" + str(Enemyy.GetMaxHP()), text_font, (255,255,255), 16, 498, screen)
+        draw_text(str(Enemyy.GetName()) + "    " + str(Enemyy.GetHP()) + "/" + str(Enemyy.GetMaxHP()), TextFont, (255,255,255), 16, 498, screen)
+        if Button == 1:
+            draw_text("Attack", TextFontUnderline, (255,255,255), 320, 498, screen)
+        else:
+            draw_text("Attack", TextFont, (255,255,255), 320, 498, screen)
         pygame.display.flip()
 
 def PlayerAttack(PlayerAttack, EnemyHealth):
@@ -466,7 +470,9 @@ def BattleStatus(EnemyHP):
         running = True
     return running
 
-text_font = pygame.font.SysFont("Comic Sans", 30)
+TextFont = pygame.font.SysFont("Comic Sans", 30)
+TextFontUnderline = pygame.font.SysFont("Comic Sans", 30)
+TextFontUnderline.set_underline(True)
 
 
 def draw_text(text, font, text_col, x, y, screen):
