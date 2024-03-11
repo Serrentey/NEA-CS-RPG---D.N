@@ -43,9 +43,8 @@ def menu():
                         button_pressm= 4
                 if event.key == pygame.K_RETURN:
                     if ButtonPress == 1:
-                        running = False
-                        NewGame = 1
                         save = "NewGame.txt"
+                        game(save, screen)
                     elif ButtonPress == 4:
                         running = False
                         
@@ -76,19 +75,11 @@ def menu():
 
         dt = clock.tick(60) / 1000
 
-    if NewGame == 1:
-        game(save)
-    else:
-        pygame.quit()
-    pygame.quit()
 
 
-def game(save):
+def game(save, screen):
     
-    screen = pygame.display.set_mode((1280, 720))
-    clock = pygame.time.Clock()
     running = True
-    dt = 0
     MoveAmount = 8
     EnemyExist = True
 
@@ -206,7 +197,6 @@ def game(save):
         screen.blit(MainCharacter.GetImage(), (MainCharacter.GetX(), MainCharacter.GetY()))
         pygame.display.flip()
 
-        dt = clock.tick(60) / 1000
 
     pygame.quit()
     
@@ -225,7 +215,6 @@ def ChangeMap(NewMap, direction):
         Number = int(NameSplit[1]) - 1
         NewMap = NameSplit[0].strip() + "_" + str(Number) + ".png"
         NewMapText = NameSplit[0].strip() + "_" + str(Number) + ".txt"
-        print(NewMap, NewMapText)
         return NewMap, NewMapText
     elif direction == "LEFT":
         NameReplace = NewMap.replace(".png", "")
@@ -273,10 +262,10 @@ def MapTextProcess(TextFile, screen):
     TextLines = Text.readlines()
     
     EnemyKind = TextLines[9].strip()
-    EnemyHP = TextLines[10].strip()
-    EnemyMaxHP = TextLines[11].strip()
-    EnemyAttack = TextLines[12].strip()
-    EnemySpeed = TextLines[13].strip()
+    EnemyHP = int(TextLines[10].strip())
+    EnemyMaxHP = int(TextLines[11].strip())
+    EnemyAttack = int(TextLines[12].strip())
+    EnemySpeed = int(TextLines[13].strip())
     EnemyType = TextLines[14].strip()
                               
     for x in TextLines:
@@ -295,7 +284,6 @@ def MapTextProcess(TextFile, screen):
             elif y == "2":
                 x = XNumber * 80
                 yy = YNumber * 80
-                print(EnemyKind)
                 if EnemyKind == "Koshka":
                     NewEnemy = Koshka(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True)
                 if EnemyKind == "Snake":
@@ -507,10 +495,12 @@ Dog = Snake(10, 10, 2, 3, "Grass", 400, 480, True)
 
 def TurnBasedRpg(MainCharacter, Enemyy, screen):
     running = True
+    EnemyExist = True
     background = pygame.image.load("BattleScene/BattleScreen.png")
     EnemyImage = Enemyy.GetImage()
     MainCharacterImage = MainCharacter.GetImage()
     backbackground = pygame.image.load("BattleScene/Woods.png")
+    Defend = 0
     
     if MainCharacter.GetSpeed() > int(Enemyy.GetSpeed()):
         SpeedQueue = [MainCharacter, Enemyy]
@@ -549,12 +539,31 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
                                 EnemyExist = False
                             EnemyMove = 1
                             PlayerMove = 0
+                        if Button == 3:
+                            Defend = 1
+                            EnemyMove = 1
+                            PlayerMove = 0
+                        if Button == 4:
+                            Luck = random.randint(0,1)
+                            if Luck == 1:
+                                running = False
+                                EnemyExist = False
+                            EnemyMove = 1
+                            PlayerMove = 0
+                            
                             
 
             if EnemyMove == 1:
-                MainCharacter.UpdateHP(EnemyTurn(Enemyy.GetAttack(), MainCharacter.GetHP()))
-                Text = "You took " + str(Enemyy.GetAttack()) + " damage!"
-                BattleTextBubble(screen, Text)
+                if Defend == 1:
+                    Damage = Enemyy.GetAttack() / 2
+                    MainCharacter.UpdateHP(MainCharacter.GetHP() - Damage)
+                    Text = "You took " + str(Damage) + " damage!"
+                    BattleTextBubble(screen, Text)
+                    Defend = 0
+                else:
+                    MainCharacter.UpdateHP(EnemyTurn(Enemyy.GetAttack(), MainCharacter.GetHP()))
+                    Text = "You took " + str(Enemyy.GetAttack()) + " damage!"
+                    BattleTextBubble(screen, Text)
                 PlayerMove = 1
                 EnemyMove = 0
                      
@@ -569,21 +578,18 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
         else:
             draw_text("Attack", TextFont, (255,255,255), 320, 480, screen)
         if Button == 2:
-            draw_text("Skills", TextFontUnderline, (255,255,255), 320, 520, screen)
+            draw_text("Skills", TextFontUnderline, (255,255,255), 320, 540, screen)
         else:
-            draw_text("Skills", TextFont, (255,255,255), 320, 520, screen)
+            draw_text("Skills", TextFont, (255,255,255), 320, 540, screen)
         if Button == 3:
-            draw_text("Defend", TextFontUnderline, (255,255,255), 320, 560, screen)
+            draw_text("Defend", TextFontUnderline, (255,255,255), 320, 600, screen)
         else:
-            draw_text("Defend", TextFont, (255,255,255), 320, 560, screen)
+            draw_text("Defend", TextFont, (255,255,255), 320, 600, screen)
         if Button == 4:
-            draw_text("Items", TextFontUnderline, (255,255,255), 320, 600, screen)
+            draw_text("Run", TextFontUnderline, (255,255,255), 320, 660, screen)
         else:
-            draw_text("Items", TextFont, (255,255,255), 320, 600, screen)
-        if Button == 5:
-            draw_text("Run", TextFontUnderline, (255,255,255), 320, 640, screen)
-        else:
-            draw_text("Run", TextFont, (255,255,255), 320, 640, screen)
+            draw_text("Run", TextFont, (255,255,255), 320, 660, screen)
+
             
         screen.blit(MainCharacterImage, (440, 360))
         screen.blit(EnemyImage , (840, 360))
