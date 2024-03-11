@@ -1,1 +1,10 @@
-1_1.png
+2_2.png
+400
+424
+4
+10
+4
+3
+1
+Normal
+["['MultiHit'", "'FireBall']"]

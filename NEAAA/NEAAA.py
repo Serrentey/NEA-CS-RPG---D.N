@@ -43,10 +43,13 @@ def menu():
                     if ButtonPress != 4:
                         ButtonPress += 1
                     else:
-                        button_pressm= 4
+                        ButtonPress = 4
                 if event.key == pygame.K_RETURN:
                     if ButtonPress == 1:
                         save = "NewGame.txt"
+                        game(save, screen)
+                    if ButtonPress == 2:
+                        save = "LoadGame.txt"
                         game(save, screen)
                     elif ButtonPress == 4:
                         running = False
@@ -102,8 +105,8 @@ def game(save, screen):
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    running = False
+                if event.key == pygame.K_c:
+                    InGameMenu(screen, MainCharacter, MapName.strip())
         
         screen.blit(Map, (0,0))
 
@@ -254,6 +257,8 @@ def SaveFileProcess(save):
     Typing = str(SaveFileLines[8].strip())
     Skill = SaveFileLines[9].strip()
     Skills = Skill.split(", ")
+    
+    SaveFile.close()
         
     return LoadMap, TextMap, PlayerX, PlayerY, Map, HP, MaxHP, Attack, Speed, Level, Typing, Skills
 
@@ -298,6 +303,8 @@ def MapTextProcess(TextFile, screen):
                 pass
                 
         YNumber += 1
+        
+    Text.close()
     return WallList, EnemyList
   
 def WallTouch(CharacterRect, walls):
@@ -448,6 +455,7 @@ class Character():
         self.MaxHP = MaxHP
         self.Attack = Attack
         self.Speed = Speed
+        self.Level = Level
         self.X = X
         self.Y = Y
         self.Typing = Typing
@@ -491,6 +499,9 @@ class Character():
     
     def UpdateY(self, NewY):
         self.Y = NewY
+        
+    def SaveValues(self):
+        return [self.X, self.Y, self.HP, self.MaxHP, self.Attack, self.Speed, self.Level, self.Typing, self.Skills]
         
 
 Cat = Koshka(10, 10, 2, 3, "Grass", 880, 280, True)
@@ -570,9 +581,10 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
                     Text = "You took " + str(Enemyy.GetAttack()) + " damage!"
                     BattleTextBubble(screen, Text)
 
-                running = BattleStatus(MainCharacter.GetHP())
-                if running == False:
-                    Continue = False
+                if running == True:
+                    running = BattleStatus(MainCharacter.GetHP())
+                    if running == False:
+                        Continue = False
                 PlayerMove = 1
                 EnemyMove = 0
                      
@@ -643,6 +655,10 @@ TextFont = pygame.font.SysFont("Comic Sans", 30)
 TextFontUnderline = pygame.font.SysFont("Comic Sans", 30)
 TextFontUnderline.set_underline(True)
 
+def draw_text(text, font, text_col, x, y, screen):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
 def SkillChoice(screen, Skills, Enemyy):
     running = True
     SkillMenu = pygame.image.load("BattleScene/SkillSelect.png")
@@ -697,11 +713,6 @@ def SkillChoice(screen, Skills, Enemyy):
             index += 1
             Y += 40
         pygame.display.flip()
-
-
-def draw_text(text, font, text_col, x, y, screen):
-    img = font.render(text, True, text_col)
-    screen.blit(img, (x, y))
 
 # List of skills
 
@@ -759,4 +770,60 @@ def MultiHit(EnemyHP):
         NewHP = NewHP - Damage
     return int(NewHP)
     
+
+def InGameMenu(screen, MainCharacter, Map):
+    running = True
+    Button = 1
+    Backdrop = pygame.image.load("GameMenu/Backdrop.png")
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    running = False
+                if event.key == pygame.K_a:
+                    if Button == 1:
+                        pass
+                    else:
+                        Button -= 1
+                if event.key == pygame.K_d:
+                    if Button == 4:
+                        pass
+                    else:
+                        Button += 1
+                if event.key == pygame.K_RETURN:
+                    if Button == 1:
+                        
+                    if Button == 3:
+                        SaveInGame(MainCharacter, Map)
+        
+                    
+        screen.blit(Backdrop, (40, 536))
+        if Button == 1:
+            draw_text("Skills", TextFontUnderline, (0,0,0), 120, 580, screen)
+        else:
+            draw_text("Skills", TextFont, (0,0,0), 120, 580, screen)
+        if Button == 2:
+            draw_text("Status", TextFontUnderline, (0,0,0), 360, 580, screen)
+        else:
+            draw_text("Status", TextFont, (0,0,0), 360, 580, screen)
+        if Button == 3:
+            draw_text("Save", TextFontUnderline, (0,0,0), 600, 580, screen)
+        else:
+            draw_text("Save", TextFont, (0,0,0), 600, 580, screen)
+        if Button == 4:
+            draw_text("Quit", TextFontUnderline, (0,0,0), 840, 580, screen)
+        else:
+            draw_text("Quit", TextFont, (0,0,0), 840, 580, screen)
+        pygame.display.flip()
+
+
+
+def SaveInGame(MainCharacter, MapLocation):
+    NewSaveFile = open("LoadGame.txt", "w")
+    NewSaveFile.write(MapLocation + "\n")
+    NewSaveFile.close()
+    NewSaveFile = open("LoadGame.txt", "a")
+    for x in MainCharacter.SaveValues():
+        NewSaveFile.write(str(x) + "\n")
+
 menu()
