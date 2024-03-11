@@ -10,8 +10,11 @@ Title = pygame.image.load("MainMenu/Title.png")
 NewGameButton = pygame.image.load("MainMenu/NewGame.png")
 NewGameButtonSelect = pygame.image.load("MainMenu/NewGameSelect.png")
 LoadButton = pygame.image.load("MainMenu/Load.png")
+LoadButtonSelect = pygame.image.load("MainMenu/LoadSelect.png")
 SettingsButton = pygame.image.load("MainMenu/Settings.png")
+SettingsButtonSelect = pygame.image.load("MainMenu/SettingsSelect.png")
 QuitButton = pygame.image.load("MainMenu/Quit.png")
+QuitButtonSelect = pygame.image.load("MainMenu/QuitSelect.png")
 Background = pygame.image.load("MainMenu/Sky.png")
 
 
@@ -58,17 +61,17 @@ def menu():
         else:
             screen.blit(NewGameButton, (554,400) )
         if ButtonPress == 2:
-            pass
+            screen.blit(LoadButtonSelect, (599,435) )
         else:
-            screen.blit(LoadButton, (554,435) )
+            screen.blit(LoadButton, (599,435) )
         if ButtonPress == 3:
-            pass
+            screen.blit(SettingsButtonSelect, (570,470) )
         else:
-            screen.blit(SettingsButton, (554,470) )
+            screen.blit(SettingsButton, (570,470) )
         if ButtonPress == 4:
-            pass
+            screen.blit(QuitButtonSelect, (604,505) )
         else:
-            screen.blit(QuitButton, (554,505) )
+            screen.blit(QuitButton, (604,505) )
 
 
         pygame.display.flip()
@@ -98,6 +101,9 @@ def game(save, screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    running = False
         
         screen.blit(Map, (0,0))
 
@@ -191,14 +197,12 @@ def game(save, screen):
                         MoveEnemyStart = time.time()  
                 if CharacterRect.colliderect(Enemies.Get_Rect()):
                     if CharacterRect.colliderect(Enemies.Get_Rect()):
-                        Enemies.UpdateExist(TurnBasedRpg(MainCharacter, Enemies, screen))
+                        NewExist, running = TurnBasedRpg(MainCharacter, Enemies, screen)
+                        Enemies.UpdateExist(NewExist)
                 Enemies.Spawn(screen)
 
         screen.blit(MainCharacter.GetImage(), (MainCharacter.GetX(), MainCharacter.GetY()))
         pygame.display.flip()
-
-
-    pygame.quit()
     
 
 def ChangeMap(NewMap, direction):
@@ -496,6 +500,7 @@ Dog = Snake(10, 10, 2, 3, "Grass", 400, 480, True)
 def TurnBasedRpg(MainCharacter, Enemyy, screen):
     running = True
     EnemyExist = True
+    Continue = True
     background = pygame.image.load("BattleScene/BattleScreen.png")
     EnemyImage = Enemyy.GetImage()
     MainCharacterImage = MainCharacter.GetImage()
@@ -564,6 +569,10 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
                     MainCharacter.UpdateHP(EnemyTurn(Enemyy.GetAttack(), MainCharacter.GetHP()))
                     Text = "You took " + str(Enemyy.GetAttack()) + " damage!"
                     BattleTextBubble(screen, Text)
+
+                running = BattleStatus(MainCharacter.GetHP())
+                if running == False:
+                    Continue = False
                 PlayerMove = 1
                 EnemyMove = 0
                      
@@ -596,7 +605,7 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
         
         pygame.display.flip()
         
-    return EnemyExist
+    return EnemyExist, Continue
 
 def PlayerAttack(PlayerAttack, EnemyHealth):
     NewHP = EnemyHealth - PlayerAttack
@@ -607,9 +616,9 @@ def EnemyTurn(EnemyAttack, PlayerHealth):
     return NewHP
     
     
-def BattleStatus(EnemyHP):
+def BattleStatus(HP):
     running = True
-    if EnemyHP <= 0:
+    if HP <= 0:
         running = False
     else: 
         running = True
