@@ -106,7 +106,7 @@ def game(save, screen):
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
-                    InGameMenu(screen, MainCharacter, MapName.strip())
+                    running = InGameMenu(screen, MainCharacter, MapName.strip())
         
         screen.blit(Map, (0,0))
 
@@ -502,6 +502,9 @@ class Character():
         
     def SaveValues(self):
         return [self.X, self.Y, self.HP, self.MaxHP, self.Attack, self.Speed, self.Level, self.Typing, self.Skills]
+    
+    def StatusValues(self):
+        return [self.Level, self.HP, self.MaxHP, self.Attack, self.Speed, self.Typing]
         
 
 Cat = Koshka(10, 10, 2, 3, "Grass", 880, 280, True)
@@ -714,8 +717,6 @@ def SkillChoice(screen, Skills, Enemyy):
             Y += 40
         pygame.display.flip()
 
-# List of skills
-
 ElementBonus = 1.5
 ElementReduction = 0.5
 ElementNull = 0
@@ -773,6 +774,7 @@ def MultiHit(EnemyHP):
 
 def InGameMenu(screen, MainCharacter, Map):
     running = True
+    Continue = True
     Button = 1
     Backdrop = pygame.image.load("GameMenu/Backdrop.png")
     while running:
@@ -792,9 +794,14 @@ def InGameMenu(screen, MainCharacter, Map):
                         Button += 1
                 if event.key == pygame.K_RETURN:
                     if Button == 1:
-                        
+                        SkillMenu(screen, MainCharacter)
+                    if Button == 2:
+                        StatusMenu(screen, MainCharacter)
                     if Button == 3:
                         SaveInGame(MainCharacter, Map)
+                    if Button == 4:
+                        Continue = False
+                        running = False
         
                     
         screen.blit(Backdrop, (40, 536))
@@ -815,8 +822,46 @@ def InGameMenu(screen, MainCharacter, Map):
         else:
             draw_text("Quit", TextFont, (0,0,0), 840, 580, screen)
         pygame.display.flip()
+        
+    return Continue
 
-
+def SkillMenu(screen, MainCharacter):
+    running = True
+    SkillMenuBackground = pygame.image.load("GameMenu/ListScreen.png")
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    running = False
+        y = 80
+        screen.blit(SkillMenuBackground, (40, 40))
+        for x in MainCharacter.GetSkills():
+            draw_text(str(x), TextFont, (0,0,0), 80, y, screen)
+            y += 80
+        pygame.display.flip()
+        
+def StatusMenu(screen, MainCharacter):
+    StatusMenuBackground = pygame.image.load("GameMenu/ListScreen.png")
+    screen.blit(StatusMenuBackground, (40, 40))
+    Values = MainCharacter.StatusValues()
+    Level = Values[0]
+    HP = Values[1]
+    MaxHP = Values[2]
+    Attack = Values[3]
+    Speed = Values[4]
+    Type = Values[5]
+    draw_text(("Level: " + str(Level)), TextFont, (0,0,0), 80, 80, screen)
+    draw_text(("HP: " + str(HP) + "/" + str(MaxHP)), TextFont, (0,0,0), 80, 160, screen)
+    draw_text(("Attack: " + str(Attack)), TextFont, (0,0,0), 80, 240, screen)
+    draw_text(("Speed: " + str(Level)), TextFont, (0,0,0), 80, 320, screen)
+    draw_text(("Type: " + str(Type)), TextFont, (0,0,0), 80, 400, screen)
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    running = False
 
 def SaveInGame(MainCharacter, MapLocation):
     NewSaveFile = open("LoadGame.txt", "w")
