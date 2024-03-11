@@ -94,16 +94,14 @@ def game(save):
 
     Map, MapText, PlayerX, PlayerY, MapName, HP, MaxHP, Attack, Speed, Level, Typing, Skills = SaveFileProcess(save)
     
-    MainMainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY, Typing, Skills)
+    MainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY, Typing, Skills)
     
-    TempPlayerX = PlayerX
-    TempPlayerY = PlayerY
+    TempPlayerX = MainCharacter.GetX()
+    TempPlayerY = MainCharacter.GetY()
     MoveEnemyStart = time.time()
     Decision = 2
 
     Walls = MapTextProcess(MapText, screen)
-
-    MainCharacter = pygame.image.load("Characters/Character.png")
 
     while running:
         for event in pygame.event.get():
@@ -112,19 +110,19 @@ def game(save):
             
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
-                    EnemyExist = TurnBasedRpg(MainMainCharacter, Cat, screen)
+                    EnemyExist = TurnBasedRpg(MainCharacter, Cat, screen)
 
         
         screen.blit(Map, (0,0))
 
-        CharacterRect = MainCharacter.get_rect(topleft = (PlayerX, PlayerY))
-        TempCharacterRect = MainCharacter.get_rect(topleft = (TempPlayerX, TempPlayerY))
+        CharacterRect = MainCharacter.GetImage().get_rect(topleft = (PlayerX, PlayerY))
+        TempCharacterRect = MainCharacter.GetImage().get_rect(topleft = (TempPlayerX, TempPlayerY))
 
         WallTouchNum = 0
         WallTouchNum = WallTouch(CharacterRect, Walls)
         
-        TempPlayerX = PlayerX
-        TempPlayerY = PlayerY
+        TempPlayerX = MainCharacter.GetX()
+        TempPlayerY = MainCharacter.GetY()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
@@ -133,83 +131,83 @@ def game(save):
             if WallTouchNum == 1:
                 pass
             elif WallTouchNum == 0:
-                PlayerY -= MoveAmount    
-            if PlayerY == 0:
+                MainCharacter.UpdateY(TempPlayerY)    
+            if MainCharacter.GetY() == 0:
                 try:
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "UP")
                     Map = pygame.image.load(MapName)
                     Walls = MapTextProcess(NewMapText, screen)
-                    PlayerY = 712
+                    MainCharacter.UpdateY(712)
                 except:
                     MapName = MapName2
-                    PlayerY = 8
+                    MainCharacter.UpdateY(8)
         if keys[pygame.K_s]:
             TempPlayerY += MoveAmount
             WallTouchNum = WallTouch(TempCharacterRect, Walls)
             if WallTouchNum == 1:
                 pass
             elif WallTouchNum == 0:
-                PlayerY += MoveAmount
-            if PlayerY >= 720:
+                MainCharacter.UpdateY(TempPlayerY)
+            if MainCharacter.GetY() >= 720:
                 try:
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "DOWN")
                     Map = pygame.image.load(MapName)
                     Walls = MapTextProcess(NewMapText, screen)
-                    PlayerY = 8
+                    MainCharacter.UpdateY(8)
                 except:
                     MapName = MapName2
-                    PlayerY = 712
+                    MainCharacter.UpdateY(712)
         if keys[pygame.K_a]:
            TempPlayerX -= MoveAmount
            WallTouchNum = WallTouch(TempCharacterRect, Walls)
            if WallTouchNum == 1:
               pass
            elif WallTouchNum == 0:
-              PlayerX -= MoveAmount
-           if PlayerX == 0:
+              MainCharacter.UpdateX(TempPlayerX)
+           if MainCharacter.GetX() == 0:
                 try:
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "LEFT")
                     Map = pygame.image.load(MapName)
                     Walls = MapTextProcess(NewMapText, screen)
-                    PlayerX = 1272
+                    MainCharacter.UpdateX(1272)
                 except:
                     MapName = MapName2
-                    PlayerX = 8
+                    MainCharacter.UpdateX(8)
         if keys[pygame.K_d]:
            TempPlayerX += MoveAmount
            WallTouchNum = WallTouch(TempCharacterRect, Walls)
            if WallTouchNum == 1:
                pass
            elif WallTouchNum == 0:
-               PlayerX += MoveAmount
-           if PlayerX == 1280:
+               MainCharacter.UpdateX(TempPlayerX)
+           if MainCharacter.GetX() == 1280:
                try: 
                    MapName2 = MapName
                    MapName, NewMapText = ChangeMap(MapName, "RIGHT")
                    Map = pygame.image.load(MapName)
                    Walls = MapTextProcess(NewMapText, screen)
-                   PlayerX = 8
+                   MainCharacter.UpdateX(8)
                except:
                    MapName = MapName2
-                   PlayerX = 1272
+                   MainCharacter.UpdateX(1272)
                    
+        EnemyWalkTime = time.time() - MoveEnemyStart
+
         if EnemyExist == True:
-
-            EnemyWalkTime = time.time() - MoveEnemyStart
-
-            Cat.Walk(screen, Decision, Walls, MainMainCharacter.GetLocation(), EnemyWalkTime)
-
-           
-            Cat.Spawn(screen)
-        
+            if EnemyWalkTime >= 3:
+                Cat.Walk(screen, Decision, Walls, MainCharacter.GetLocation(), EnemyWalkTime)
+                if EnemyWalkTime >= 3.2:
+                    Decision = random.randint(0,4)
+                    MoveEnemyStart = time.time()  
             if CharacterRect.colliderect(Cat.Get_Rect()):
-                EnemyExist = TurnBasedRpg(MainMainCharacter, Cat, screen)
+                if CharacterRect.colliderect(Cat.Get_Rect()):
+                    EnemyExist = TurnBasedRpg(MainCharacter, Cat, screen)
+            Cat.Spawn(screen)
 
-            
-        screen.blit(MainCharacter, (PlayerX, PlayerY))
+        screen.blit(MainCharacter.GetImage(), (MainCharacter.GetX(), MainCharacter.GetY()))
         pygame.display.flip()
 
         dt = clock.tick(60) / 1000
@@ -352,43 +350,36 @@ class Enemy():
         if decision == 0:
             if self.Y >= 720:
                 self.Y = 712
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
             else:
                 self.Y += 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
                 WallTouchNum = WallTouch(self.EnemyRect, walls)
                 if WallTouchNum == 1:
                     self.Y -= 8
         elif decision == 1:
             if self.Y <= 0:
                 self.Y = 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
             else:
                 self.Y -= 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
                 WallTouchNum = WallTouch(self.EnemyRect, walls)
                 if WallTouchNum == 1:
                     self.Y += 8
         elif decision == 2:
             if self.X >= 1280:
                 self.X = 1272
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
             else:
                 self.X += 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
                 WallTouchNum = WallTouch(self.EnemyRect, walls)
                 if WallTouchNum == 1:
                     self.X -= 8
         elif decision == 3:
             if self.X <= 0:
                 self.X = 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
             else:
                 self.X -= 8
-                self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
                 WallTouchNum = WallTouch(self.EnemyRect, walls)
                 if WallTouchNum == 1:
                     self.X += 8
+        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
                     
     def GetHP(self):
         return self.HP
@@ -414,15 +405,8 @@ class Snake(Enemy):
         Enemy.__init__(self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y)
         
     def Walk(self, screen, decision, walls, CharacterLocation, Time):
-        WallTouchNum = WallTouch(self.Get_Rect(), walls)
-        if self.X >= CharacterLocation[0]:
-            self.X -= 1
-        if self.X >= CharacterLocation[0]:
-            self.X += 1
-        if self.Y >= CharacterLocation[1]:
-            self.Y -= 1
-        if self.Y >= CharacterLocation[1]:
-            self.Y += 1
+        print(CharacterLocation[0])
+        self.X += 8
                   
 class Character():
     def __init__(self, Image, HP, MaxHP, Attack, Speed, Level, X, Y, Typing, Skills):
@@ -464,8 +448,18 @@ class Character():
     
     def GetLocation(self):
         return (self.X, self.Y)
-        
-        
+    
+    def GetX(self):
+        return self.X
+    
+    def UpdateX(self, NewX):
+        self.X = NewX
+    
+    def GetY(self):
+        return self.Y
+    
+    def UpdateY(self, NewY):
+        self.Y = NewY
         
 
 Cat = Snake("Characters/Cat.png", 10, 10, 2, 3, "Grass", 880, 280)
