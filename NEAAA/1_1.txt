@@ -13,3 +13,4 @@ Snake
 4
 3
 Grass
+500

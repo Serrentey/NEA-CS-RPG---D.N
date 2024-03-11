@@ -13,3 +13,4 @@ Koshka
 2
 3
 Fire
+250

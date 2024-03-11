@@ -89,16 +89,16 @@ def game(save, screen):
     MoveAmount = 8
     EnemyExist = True
 
-    Map, MapText, PlayerX, PlayerY, MapName, HP, MaxHP, Attack, Speed, Level, Typing, Skills = SaveFileProcess(save)
+    Map, MapText, PlayerX, PlayerY, MapName, HP, MaxHP, Attack, Speed, Level, Typing, Skills, XP, XPNeeded = SaveFileProcess(save)
     
-    MainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY, Typing, Skills)
+    MainCharacter = Character("Characters/Character.png", HP, MaxHP, Attack, Speed, Level, PlayerX, PlayerY, Typing, Skills, XP, XPNeeded)
     
     TempPlayerX = MainCharacter.GetX()
     TempPlayerY = MainCharacter.GetY()
     MoveEnemyStart = time.time()
     Decision = 2
 
-    Walls, EnemyList = MapTextProcess(MapText, screen)
+    Walls, EnemyList, Heals = MapTextProcess(MapText, screen)
 
     while running:
         for event in pygame.event.get():
@@ -189,6 +189,10 @@ def game(save, screen):
                    MapName = MapName2
                    MainCharacter.UpdateX(1272)
                    
+        if HealTouch(CharacterRect, Heals) == 1:
+            MainCharacter.UpdateHP(MainCharacter.GetMaxHP())
+            
+                   
         EnemyWalkTime = time.time() - MoveEnemyStart
 
         for Enemies in EnemyList:
@@ -257,15 +261,18 @@ def SaveFileProcess(save):
     Typing = str(SaveFileLines[8].strip())
     Skill = SaveFileLines[9].strip()
     Skills = Skill.split(", ")
+    XP = int(SaveFileLines[10].strip())
+    XPNeeded = int(SaveFileLines[11].strip())
     
     SaveFile.close()
         
-    return LoadMap, TextMap, PlayerX, PlayerY, Map, HP, MaxHP, Attack, Speed, Level, Typing, Skills
+    return LoadMap, TextMap, PlayerX, PlayerY, Map, HP, MaxHP, Attack, Speed, Level, Typing, Skills, XP, XPNeeded
 
 def MapTextProcess(TextFile, screen):
     YNumber = 0
     WallList = []
     EnemyList = []
+    HealList = []
     
     Text = open(TextFile, "r")
     TextLines = Text.readlines()
@@ -276,6 +283,7 @@ def MapTextProcess(TextFile, screen):
     EnemyAttack = int(TextLines[12].strip())
     EnemySpeed = int(TextLines[13].strip())
     EnemyType = TextLines[14].strip()
+    EnemyXP = TextLines[15].strip()
                               
     for x in TextLines:
         XStrip = x.strip()
@@ -294,10 +302,16 @@ def MapTextProcess(TextFile, screen):
                 x = XNumber * 80
                 yy = YNumber * 80
                 if EnemyKind == "Koshka":
-                    NewEnemy = Koshka(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True)
+                    NewEnemy = Koshka(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True, EnemyXP)
                 if EnemyKind == "Snake":
-                    NewEnemy = Snake(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True)
+                    NewEnemy = Snake(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True, EnemyXP)
                 EnemyList.append(NewEnemy)
+                XNumber += 1
+            elif y == "3":
+                x = XNumber * 80
+                yy = YNumber * 80
+                Heal = pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, yy, 80, 80))
+                HealList.append(Heal)
                 XNumber += 1
             else:
                 pass
@@ -305,7 +319,7 @@ def MapTextProcess(TextFile, screen):
         YNumber += 1
         
     Text.close()
-    return WallList, EnemyList
+    return WallList, EnemyList, HealList
   
 def WallTouch(CharacterRect, walls):
     WallTouchNum = 0
@@ -313,9 +327,16 @@ def WallTouch(CharacterRect, walls):
         if CharacterRect.colliderect(x):
             WallTouchNum = 1
     return WallTouchNum
+
+def HealTouch(CharacterRect, HealList):
+    HealTouchNum = 0
+    for x in HealList:
+        if CharacterRect.colliderect(x):
+            WallTouchNum = 1
+    return HealTouchNum
         
 class Enemy():
-    def __init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
+    def __init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP):
         self.HP = HP
         self.MaxHP = MaxHP
         self.Attack = Attack
@@ -324,6 +345,7 @@ class Enemy():
         self.X = X
         self.Y = Y
         self.Exist = Exist
+        self.XP = XP
         
     def Spawn(self, screen):
         screen.blit(self.Image, (self.X, self.Y))
@@ -403,9 +425,12 @@ class Enemy():
     def UpdateExist(self, New):
         self.Exist = New
         
+    def GetXP(self):
+        return self.XP
+        
 class Koshka(Enemy):
-    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
-        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist)
+    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP):
+        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP)
         
         self.Image = pygame.image.load("Characters/Cat.png")
         self.Name = ("Cat")
@@ -413,8 +438,8 @@ class Koshka(Enemy):
 
         
 class Snake(Enemy):
-    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
-        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist)
+    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP):
+        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP)
         
         self.Image = pygame.image.load("Characters/Snake.png")
         self.Name = ("Snake")
@@ -447,7 +472,7 @@ class Snake(Enemy):
         
                   
 class Character():
-    def __init__(self, Image, HP, MaxHP, Attack, Speed, Level, X, Y, Typing, Skills):
+    def __init__(self, Image, HP, MaxHP, Attack, Speed, Level, X, Y, Typing, Skills, XP, XPNeeded):
         replaced = Image.replace("Characters/", "")
         self.Name = replaced.replace(".png", "")
         self.Image = pygame.image.load(Image)
@@ -460,6 +485,8 @@ class Character():
         self.Y = Y
         self.Typing = Typing
         self.Skills = Skills
+        self.XP = XP
+        self.XPNeeded = XPNeeded
         
     def GetHP(self):
         return self.HP
@@ -501,16 +528,11 @@ class Character():
         self.Y = NewY
         
     def SaveValues(self):
-        return [self.X, self.Y, self.HP, self.MaxHP, self.Attack, self.Speed, self.Level, self.Typing, self.Skills]
+        return [self.X, self.Y, self.HP, self.MaxHP, self.Attack, self.Speed, self.Level, self.Typing, self.Skills, self.XP, self.XPNeeded]
     
     def StatusValues(self):
         return [self.Level, self.HP, self.MaxHP, self.Attack, self.Speed, self.Typing]
         
-
-Cat = Koshka(10, 10, 2, 3, "Grass", 880, 280, True)
-Dog = Snake(10, 10, 2, 3, "Grass", 400, 480, True)
-        
-
 def TurnBasedRpg(MainCharacter, Enemyy, screen):
     running = True
     EnemyExist = True

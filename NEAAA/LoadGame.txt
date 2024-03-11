@@ -1,10 +1,12 @@
 2_2.png
-496
-584
+352
+424
 10
 10
 4
 3
 1
 Normal
-["['MultiHit'", "'FireBall']"]
+['MultiHit', 'FireBall']
+0
+400

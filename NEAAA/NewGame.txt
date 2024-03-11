@@ -8,3 +8,5 @@
 1
 Normal
 MultiHit, FireBall
+0
+400
