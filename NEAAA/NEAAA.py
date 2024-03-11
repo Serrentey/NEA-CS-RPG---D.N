@@ -101,21 +101,16 @@ def game(save):
     MoveEnemyStart = time.time()
     Decision = 2
 
-    Walls = MapTextProcess(MapText, screen)
+    Walls, EnemyList = MapTextProcess(MapText, screen)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_f:
-                    EnemyExist = TurnBasedRpg(MainCharacter, Cat, screen)
-
         
         screen.blit(Map, (0,0))
 
-        CharacterRect = MainCharacter.GetImage().get_rect(topleft = (PlayerX, PlayerY))
+        CharacterRect = MainCharacter.GetImage().get_rect(topleft = (MainCharacter.GetX(), MainCharacter.GetY()))
         TempCharacterRect = MainCharacter.GetImage().get_rect(topleft = (TempPlayerX, TempPlayerY))
 
         WallTouchNum = 0
@@ -137,7 +132,7 @@ def game(save):
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "UP")
                     Map = pygame.image.load(MapName)
-                    Walls = MapTextProcess(NewMapText, screen)
+                    Walls, EnemyList = MapTextProcess(NewMapText, screen)
                     MainCharacter.UpdateY(712)
                 except:
                     MapName = MapName2
@@ -154,7 +149,7 @@ def game(save):
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "DOWN")
                     Map = pygame.image.load(MapName)
-                    Walls = MapTextProcess(NewMapText, screen)
+                    Walls, EnemyList = MapTextProcess(NewMapText, screen)
                     MainCharacter.UpdateY(8)
                 except:
                     MapName = MapName2
@@ -171,7 +166,7 @@ def game(save):
                     MapName2 = MapName
                     MapName, NewMapText = ChangeMap(MapName, "LEFT")
                     Map = pygame.image.load(MapName)
-                    Walls = MapTextProcess(NewMapText, screen)
+                    Walls, EnemyList = MapTextProcess(NewMapText, screen)
                     MainCharacter.UpdateX(1272)
                 except:
                     MapName = MapName2
@@ -188,7 +183,7 @@ def game(save):
                    MapName2 = MapName
                    MapName, NewMapText = ChangeMap(MapName, "RIGHT")
                    Map = pygame.image.load(MapName)
-                   Walls = MapTextProcess(NewMapText, screen)
+                   Walls, EnemyList = MapTextProcess(NewMapText, screen)
                    MainCharacter.UpdateX(8)
                except:
                    MapName = MapName2
@@ -196,16 +191,17 @@ def game(save):
                    
         EnemyWalkTime = time.time() - MoveEnemyStart
 
-        if EnemyExist == True:
-            if EnemyWalkTime >= 3:
-                Cat.Walk(screen, Decision, Walls, MainCharacter.GetLocation(), EnemyWalkTime)
-                if EnemyWalkTime >= 3.2:
-                    Decision = random.randint(0,4)
-                    MoveEnemyStart = time.time()  
-            if CharacterRect.colliderect(Cat.Get_Rect()):
-                if CharacterRect.colliderect(Cat.Get_Rect()):
-                    EnemyExist = TurnBasedRpg(MainCharacter, Cat, screen)
-            Cat.Spawn(screen)
+        for Enemies in EnemyList:
+            if Enemies.GetExist() == True:
+                if EnemyWalkTime >= 3:
+                    Enemies.Walk(screen, Decision, Walls, MainCharacter.GetLocation(), EnemyWalkTime)
+                    if EnemyWalkTime >= 3.2:
+                        Decision = random.randint(0,4)
+                        MoveEnemyStart = time.time()  
+                if CharacterRect.colliderect(Enemies.Get_Rect()):
+                    if CharacterRect.colliderect(Enemies.Get_Rect()):
+                        Enemies.UpdateExist(TurnBasedRpg(MainCharacter, Enemies, screen))
+                Enemies.Spawn(screen)
 
         screen.blit(MainCharacter.GetImage(), (MainCharacter.GetX(), MainCharacter.GetY()))
         pygame.display.flip()
@@ -275,8 +271,14 @@ def MapTextProcess(TextFile, screen):
     
     Text = open(TextFile, "r")
     TextLines = Text.readlines()
-
-
+    
+    EnemyKind = TextLines[9].strip()
+    EnemyHP = TextLines[10].strip()
+    EnemyMaxHP = TextLines[11].strip()
+    EnemyAttack = TextLines[12].strip()
+    EnemySpeed = TextLines[13].strip()
+    EnemyType = TextLines[14].strip()
+                              
     for x in TextLines:
         XStrip = x.strip()
         XSplit = XStrip.split(",")
@@ -291,14 +293,20 @@ def MapTextProcess(TextFile, screen):
                 WallList.append(Wall)
                 XNumber += 1
             elif y == "2":
-                enemy = "yes"
-                EnemyList.append(enemy)
+                x = XNumber * 80
+                yy = YNumber * 80
+                print(EnemyKind)
+                if EnemyKind == "Koshka":
+                    NewEnemy = Koshka(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True)
+                if EnemyKind == "Snake":
+                    NewEnemy = Snake(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True)
+                EnemyList.append(NewEnemy)
                 XNumber += 1
             else:
                 pass
                 
         YNumber += 1
-    return WallList
+    return WallList, EnemyList
   
 def WallTouch(CharacterRect, walls):
     WallTouchNum = 0
@@ -308,10 +316,7 @@ def WallTouch(CharacterRect, walls):
     return WallTouchNum
         
 class Enemy():
-    def __init__(self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y):
-        replaced = Image.replace("Characters/", "")
-        self.Name = replaced.replace(".png", "")
-        self.Image = pygame.image.load(Image)
+    def __init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
         self.HP = HP
         self.MaxHP = MaxHP
         self.Attack = Attack
@@ -319,7 +324,7 @@ class Enemy():
         self.Typing = Typing
         self.X = X
         self.Y = Y
-        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
+        self.Exist = Exist
         
     def Spawn(self, screen):
         screen.blit(self.Image, (self.X, self.Y))
@@ -339,9 +344,6 @@ class Enemy():
     
     def GetImage(self):
         return self.Image
-    
-    def UpdateRect(self):
-        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
         
     def Walk(self, screen, decision, walls, CharacterLocation, Time):
         
@@ -395,18 +397,55 @@ class Enemy():
     
     def GetTyping(self):
         return self.Typing
+    
+    def GetExist(self):
+        return self.Exist
+    
+    def UpdateExist(self, New):
+        self.Exist = New
         
 class Koshka(Enemy):
-    def __init__ (self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y):
-        Enemy.__init__(self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y)
+    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
+        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist)
+        
+        self.Image = pygame.image.load("Characters/Cat.png")
+        self.Name = ("Cat")
+        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
+
         
 class Snake(Enemy):
-    def __init__ (self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y):
-        Enemy.__init__(self, Image, HP, MaxHP, Attack, Speed, Typing, X, Y)
+    def __init__ (self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist):
+        Enemy.__init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist)
         
+        self.Image = pygame.image.load("Characters/Snake.png")
+        self.Name = ("Snake")
+        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
+
+
     def Walk(self, screen, decision, walls, CharacterLocation, Time):
-        print(CharacterLocation[0])
-        self.X += 8
+        WallTouchNum = 0
+        if self.X >= CharacterLocation[0]:
+            self.X -= 8
+            WallTouchNum = WallTouch(self.EnemyRect, walls)
+            if WallTouchNum == 1:
+                self.X += 8
+        if self.X <= CharacterLocation[0]:
+            self.X += 8
+            WallTouchNum = WallTouch(self.EnemyRect, walls)
+            if WallTouchNum == 1:
+                self.X -= 8
+        if self.Y >= CharacterLocation[1]:
+            self.Y -= 8
+            WallTouchNum = WallTouch(self.EnemyRect, walls)
+            if WallTouchNum == 1:
+                self.Y += 8
+        if self.Y <= CharacterLocation[1]:
+            self.Y += 8
+            WallTouchNum = WallTouch(self.EnemyRect, walls)
+            if WallTouchNum == 1:
+                self.Y -= 8
+        self.EnemyRect = self.Image.get_rect(topleft = (self.X, self.Y))
+        
                   
 class Character():
     def __init__(self, Image, HP, MaxHP, Attack, Speed, Level, X, Y, Typing, Skills):
@@ -462,8 +501,10 @@ class Character():
         self.Y = NewY
         
 
-Cat = Snake("Characters/Cat.png", 10, 10, 2, 3, "Grass", 880, 280)
+Cat = Koshka(10, 10, 2, 3, "Grass", 880, 280, True)
+Dog = Snake(10, 10, 2, 3, "Grass", 400, 480, True)
         
+
 def TurnBasedRpg(MainCharacter, Enemyy, screen):
     running = True
     background = pygame.image.load("BattleScene/BattleScreen.png")
@@ -471,7 +512,7 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
     MainCharacterImage = MainCharacter.GetImage()
     backbackground = pygame.image.load("BattleScene/Woods.png")
     
-    if MainCharacter.GetSpeed() > Enemyy.GetSpeed():
+    if MainCharacter.GetSpeed() > int(Enemyy.GetSpeed()):
         SpeedQueue = [MainCharacter, Enemyy]
     else:
         SpeedQueue = [Enemyy, MainCharacter]
@@ -556,7 +597,7 @@ def PlayerAttack(PlayerAttack, EnemyHealth):
     return NewHP
 
 def EnemyTurn(EnemyAttack, PlayerHealth):
-    NewHP = PlayerHealth - EnemyAttack
+    NewHP = PlayerHealth - int(EnemyAttack)
     return NewHP
     
     
@@ -610,22 +651,22 @@ def SkillChoice(screen, Skills, Enemyy):
                     SkillUse = Skills[Button]
                     if str(SkillUse) == "FireBall":
                         NewHP = (FireBall(Enemyy.GetHP(), Enemyy.GetTyping()))
-                        text = "You dealt " + str(Enemyy.GetHP() - NewHP) + " damage!"
+                        text = "You dealt " + str(int(Enemyy.GetHP()) - NewHP) + " damage!"
                         BattleTextBubble(screen, text)
                         Enemyy.UpdateHP(NewHP)
                     if str(SkillUse) == "WaterGun":
                         NewHP = (WaterGun(Enemyy.GetHP(), Enemyy.GetTyping()))
-                        text = "You dealt " + str(Enemyy.GetHP() - NewHP) + " damage!"
+                        text = "You dealt " + str(int(Enemyy.GetHP()) - NewHP) + " damage!"
                         BattleTextBubble(screen, text)
                         Enemyy.UpdateHP(NewHP)
                     if str(SkillUse) == "VineWhip":
                         NewHP = (VineWhip(Enemyy.GetHP(), Enemyy.GetTyping()))
-                        text = "You dealt " + str(Enemyy.GetHP() - NewHP) + " damage!"
+                        text = "You dealt " + str(int(Enemyy.GetHP()) - NewHP) + " damage!"
                         BattleTextBubble(screen, text)
                         Enemyy.UpdateHP(NewHP)
                     if str(SkillUse) == "MultiHit":
                         NewHP = (MultiHit(Enemyy.GetHP()))
-                        text = "You dealt " + str(Enemyy.GetHP() - NewHP) + " damage!"
+                        text = "You dealt " + str(int(Enemyy.GetHP()) - NewHP) + " damage!"
                         BattleTextBubble(screen, text)
                         Enemyy.UpdateHP(NewHP)
                     running = False
@@ -654,6 +695,7 @@ ElementReduction = 0.5
 ElementNull = 0
 
 def FireBall(EnemyHP, EnemyTyping):
+    EnemyHP = float(EnemyHP)
     EnemyTyping = str(EnemyTyping)
     Damage = 4
     Typing = "Fire"
@@ -665,7 +707,7 @@ def FireBall(EnemyHP, EnemyTyping):
         NewHP = EnemyHP - (Damage * ElementNull)
     else:
         NewHP = EnemyHP - Damage     
-    return NewHP
+    return int(NewHP)
         
 def WaterGun(EnemyHP, EnemyTyping):
     Damage = 4
@@ -678,7 +720,7 @@ def WaterGun(EnemyHP, EnemyTyping):
         NewHP = EnemyHP - (Damage * ElementNull)
     else:
         NewHP = EnemyHP - Damage     
-    return NewHP
+    return int(NewHP)
     
 def VineWhip(EnemyHP, EnemyTyping):
     Damage = 4
@@ -691,7 +733,7 @@ def VineWhip(EnemyHP, EnemyTyping):
         NewHP = EnemyHP - (Damage * ElementNull)
     else:
         NewHP = EnemyHP - Damage     
-    return NewHP
+    return int(NewHP)
     
 def MultiHit(EnemyHP):
     Damage = 3
@@ -700,6 +742,6 @@ def MultiHit(EnemyHP):
     Luck = random.randint(0,1)
     if Luck == 1:
         NewHP = NewHP - Damage
-    return NewHP
+    return int(NewHP)
     
 menu()
