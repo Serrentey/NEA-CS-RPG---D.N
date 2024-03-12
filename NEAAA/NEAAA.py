@@ -98,7 +98,7 @@ def game(save, screen):
     MoveEnemyStart = time.time()
     Decision = 2
 
-    Walls, EnemyList, Heals = MapTextProcess(MapText, screen)
+    Walls, EnemyList= MapTextProcess(MapText, screen)
 
     while running:
         for event in pygame.event.get():
@@ -107,6 +107,10 @@ def game(save, screen):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
                     running = InGameMenu(screen, MainCharacter, MapName.strip())
+                if event.key == pygame.K_f:
+                    text = "You healed to full"
+                    BattleTextBubble(screen, text)
+                    MainCharacter.UpdateHP(MainCharacter.GetMaxHP())
         
         screen.blit(Map, (0,0))
 
@@ -189,8 +193,7 @@ def game(save, screen):
                    MapName = MapName2
                    MainCharacter.UpdateX(1272)
                    
-        if HealTouch(CharacterRect, Heals) == 1:
-            MainCharacter.UpdateHP(MainCharacter.GetMaxHP())
+
             
                    
         EnemyWalkTime = time.time() - MoveEnemyStart
@@ -272,7 +275,6 @@ def MapTextProcess(TextFile, screen):
     YNumber = 0
     WallList = []
     EnemyList = []
-    HealList = []
     
     Text = open(TextFile, "r")
     TextLines = Text.readlines()
@@ -307,19 +309,14 @@ def MapTextProcess(TextFile, screen):
                     NewEnemy = Snake(EnemyHP, EnemyMaxHP, EnemyAttack, EnemySpeed, EnemyType, x, yy, True, EnemyXP)
                 EnemyList.append(NewEnemy)
                 XNumber += 1
-            elif y == "3":
-                x = XNumber * 80
-                yy = YNumber * 80
-                Heal = pygame.draw.rect(screen, (255,255,255), pygame.Rect(x, yy, 80, 80))
-                HealList.append(Heal)
-                XNumber += 1
+
             else:
                 pass
                 
         YNumber += 1
         
     Text.close()
-    return WallList, EnemyList, HealList
+    return WallList, EnemyList
   
 def WallTouch(CharacterRect, walls):
     WallTouchNum = 0
@@ -327,13 +324,6 @@ def WallTouch(CharacterRect, walls):
         if CharacterRect.colliderect(x):
             WallTouchNum = 1
     return WallTouchNum
-
-def HealTouch(CharacterRect, HealList):
-    HealTouchNum = 0
-    for x in HealList:
-        if CharacterRect.colliderect(x):
-            WallTouchNum = 1
-    return HealTouchNum
         
 class Enemy():
     def __init__(self, HP, MaxHP, Attack, Speed, Typing, X, Y, Exist, XP):
@@ -532,6 +522,24 @@ class Character():
     
     def StatusValues(self):
         return [self.Level, self.HP, self.MaxHP, self.Attack, self.Speed, self.Typing]
+    
+    def GetXP(self):
+        return self.XP
+    
+    def GetXPNeeded(self):
+        return self.XPNeeded
+    
+    def UpdateXP(self, NewXP):
+        self.XP = self.XP + int(NewXP)
+        
+    def LevelUp(self):
+        self.Level += 1
+        self.Attack += 2
+        self.Speed += 1
+        self.MaxHP += 4
+        self.HP = self.MaxHP
+        self.XP = 0
+        self.XPNeeded = self.XPNeeded + (100 * (1 + (self.Level / 10)))
         
 def TurnBasedRpg(MainCharacter, Enemyy, screen):
     running = True
@@ -641,6 +649,12 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
         screen.blit(EnemyImage , (840, 360))
         
         pygame.display.flip()
+        
+    if Continue == True:
+        MainCharacter.UpdateXP(Enemyy.GetXP())
+        if MainCharacter.GetXP() >= MainCharacter.GetXPNeeded():
+            MainCharacter.LevelUp()
+            
         
     return EnemyExist, Continue
 
@@ -843,6 +857,8 @@ def InGameMenu(screen, MainCharacter, Map):
             draw_text("Quit", TextFontUnderline, (0,0,0), 840, 580, screen)
         else:
             draw_text("Quit", TextFont, (0,0,0), 840, 580, screen)
+        draw_text("Character", TextFont, (0,0,0), 1050, 550, screen)
+        draw_text(("XP: " + str(MainCharacter.GetXP()) + "/" + str(MainCharacter.GetXPNeeded())), TextFont, (0,0,0), 1050, 615, screen)
         pygame.display.flip()
         
     return Continue
