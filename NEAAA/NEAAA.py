@@ -265,7 +265,7 @@ def SaveFileProcess(save):
     Skill = SaveFileLines[9].strip()
     Skills = Skill.split(", ")
     XP = int(SaveFileLines[10].strip())
-    XPNeeded = int(SaveFileLines[11].strip())
+    XPNeeded = float(SaveFileLines[11].strip())
     
     SaveFile.close()
         
@@ -551,12 +551,12 @@ def TurnBasedRpg(MainCharacter, Enemyy, screen):
     backbackground = pygame.image.load("BattleScene/Woods.png")
     Defend = 0
     
-    if MainCharacter.GetSpeed() > int(Enemyy.GetSpeed()):
-        SpeedQueue = [MainCharacter, Enemyy]
+    if int(MainCharacter.GetSpeed()) > int(Enemyy.GetSpeed()):
+        PlayerMove = 1
+        EnemyMove = 0 
     else:
-        SpeedQueue = [Enemyy, MainCharacter]
-    PlayerMove = 1
-    EnemyMove = 0 
+        PlayerMove = 0
+        EnemyMove = 1
     Button = 1
     while running:
         TextBubble = False
@@ -665,8 +665,7 @@ def PlayerAttack(PlayerAttack, EnemyHealth):
 def EnemyTurn(EnemyAttack, PlayerHealth):
     NewHP = PlayerHealth - int(EnemyAttack)
     return NewHP
-    
-    
+     
 def BattleStatus(HP):
     running = True
     if HP <= 0:
@@ -686,7 +685,6 @@ def BattleTextBubble(screen, text):
                 if event.key == pygame.K_RETURN:
                     TextBubble = False
         pygame.display.flip()
-
 
     
 
@@ -735,10 +733,10 @@ def SkillChoice(screen, Skills, Enemyy):
                         BattleTextBubble(screen, text)
                         Enemyy.UpdateHP(NewHP)
                     if str(SkillUse) == "MultiHit":
-                        NewHP = (MultiHit(Enemyy.GetHP()))
-                        text = "You dealt " + str(int(Enemyy.GetHP()) - NewHP) + " damage!"
+                        OldHP = Enemyy.GetHP()
+                        MultiHit(Enemyy, 1)
+                        text = "You dealt " + str(int(OldHP) - int(Enemyy.GetHP())) + " damage!"
                         BattleTextBubble(screen, text)
-                        Enemyy.UpdateHP(NewHP)
                     running = False
                     
         screen.blit(SkillMenu, (293, 478))
@@ -798,14 +796,18 @@ def VineWhip(EnemyHP, EnemyTyping):
         NewHP = EnemyHP - Damage     
     return int(NewHP)
     
-def MultiHit(EnemyHP):
-    Damage = 3
-    Luck = 0
-    NewHP = EnemyHP - Damage
-    Luck = random.randint(0,1)
-    if Luck == 1:
-        NewHP = NewHP - Damage
-    return int(NewHP)
+def MultiHit(Enemyy, Num):
+    Damage = 2
+    while Num != 5:
+        luck = random.randint(0,4)
+        if luck == 0:
+            Num = 5
+        else:
+            Enemyy.UpdateHP(int(Enemyy.GetHP()) - Damage)
+            Num += 1
+            Num = MultiHit(Enemyy, Num)
+    return Num
+            
     
 
 def InGameMenu(screen, MainCharacter, Map):

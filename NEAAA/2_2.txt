@@ -11,6 +11,6 @@ Koshka
 10
 10
 2
-3
+2
 Normal
 250
